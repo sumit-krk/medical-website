@@ -5,11 +5,14 @@ import './App.css';
 const App = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'नमस्ते! मैं MediCare Plus का AI assistant हूं। मैं आपकी appointment booking में मदद कर सकता हूं। आप किस तरह की medical help चाहते हैं?' }
+    { role: 'assistant', content: 'Hello! I am the AI assistant for HealthCare Plus Clinic. I can help you with your appointment booking. What kind of medical help do you need?' }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+  const [isRecording, setIsRecording] = useState(false);
+  let recognition;
 
   const departments = [
     { name: 'Cardiology', icon: Heart, color: 'bg-red-100 text-red-600', desc: 'Heart & Vascular Care' },
@@ -20,11 +23,11 @@ const App = () => {
   ];
 
   const doctors = [
-    { name: 'Dr. Rajesh Kumar', dept: 'Cardiologist', exp: '15 years', image: 'https://i.pravatar.cc/150?img=12' },
-    { name: 'Dr. Priya Sharma', dept: 'Neurologist', exp: '12 years', image: 'https://i.pravatar.cc/150?img=45' },
-    { name: 'Dr. Amit Patel', dept: 'Orthopedic', exp: '18 years', image: 'https://i.pravatar.cc/150?img=33' },
-    { name: 'Dr. Sneha Verma', dept: 'Ophthalmologist', exp: '10 years', image: 'https://i.pravatar.cc/150?img=47' },
-    { name: 'Dr. Vikram Singh', dept: 'General Physician', exp: '20 years', image: 'https://i.pravatar.cc/150?img=51' }
+    { name: 'Dr. Benjamin', dept: 'Cardiologist', exp: '15 years', image: 'https://i.pravatar.cc/150?img=12' },
+    { name: 'Dr. Amelia', dept: 'Neurologist', exp: '12 years', image: 'https://i.pravatar.cc/150?img=45' },
+    { name: 'Dr. Salvador', dept: 'Orthopedic', exp: '18 years', image: 'https://i.pravatar.cc/150?img=33' },
+    { name: 'Dr. Sophia', dept: 'Ophthalmologist', exp: '10 years', image: 'https://i.pravatar.cc/150?img=47' },
+    { name: 'Dr. Mateo', dept: 'General Physician', exp: '20 years', image: 'https://i.pravatar.cc/150?img=51' }
   ];
 
   const scrollToBottom = () => {
@@ -36,69 +39,116 @@ const App = () => {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
-
-    const userMessage = inputMessage.trim();
-    setInputMessage('');
-    
-    const newMessages = [...messages, { role: 'user', content: userMessage }];
-    setMessages(newMessages);
+    if (!inputMessage.trim()) return;
+  
+    // Add user's message to chat
+    setMessages(prev => [
+      ...prev,
+      { role: "user", content: inputMessage }
+    ]);
+  
     setIsLoading(true);
-
+  
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          system: `You are a helpful medical appointment booking assistant for MediCare Plus hospital. Your role is to:
-1. Help patients book appointments with doctors
-2. Answer questions about departments, doctors, and services
-3. Collect necessary information: full name, phone number, email, preferred date/time
-4. Provide available appointment slots
-5. Confirm bookings with a confirmation code
-
-Available Departments:
-- Cardiology (Dr. Rajesh Kumar - 15 years exp)
-- Neurology (Dr. Priya Sharma - 12 years exp)
-- Orthopedics (Dr. Amit Patel - 18 years exp)
-- Ophthalmology (Dr. Sneha Verma - 10 years exp)
-- General Medicine (Dr. Vikram Singh - 20 years exp)
-
-Available time slots: 9:00 AM to 6:00 PM (Monday to Saturday)
-Consultation types: General (30 min), Specialist (45 min), Follow-up (20 min)
-
-Insurance accepted: Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, Medicare
-Contact: (555) 123-4567 | info@medicareplus.com
-
-Be conversational, empathetic, and helpful. Ask one question at a time. Use both English and Hindi as needed to make patients comfortable.`,
-          messages: newMessages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a helpful medical appointment assistant for HealthCare Plus Clinic. Reply short, polite and guide step-by-step."
+            },
+            ...messages.map(m => ({
+              role: m.role,
+              content: m.content
+            })),
+            {
+              role: "user",
+              content: inputMessage
+            }
+          ],
+          max_tokens: 300
         })
       });
-
+  
       const data = await response.json();
-      const assistantMessage = data.content[0].text;
-      
-      setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages([...newMessages, { 
-        role: 'assistant', 
-        content: 'माफ़ करें, कुछ technical issue है। कृपया बाद में try करें या हमें (555) 123-4567 पर call करें।' 
-      }]);
-    } finally {
-      setIsLoading(false);
+      console.log("AI RAW Response:", data);
+  
+      const botReply = data?.choices?.[0]?.message?.content || "No response received.";
+  
+      // Add bot message to chat
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: botReply }
+      ]);
+  
+    } catch (err) {
+      console.error("OpenAI Error:", err);
+  
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "⚠️ अभी सर्वर से कनेक्शन नहीं हो पा रहा है। कृपया थोड़ी देर बाद try करें।"
+        }
+      ]);
+    }
+  
+    setInputMessage("");  
+    setIsLoading(false);
+  };
+  
+  const startVoiceRecognition = () => {
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  
+      if (!SpeechRecognition) {
+        alert("Your browser does not support voice recognition.");
+        return;
+      }
+  
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-US";   // later we can switch to Hindi too
+      recognition.continuous = false;
+      recognition.interimResults = false;
+  
+      recognition.onstart = () => {
+        setIsRecording(true);
+        console.log("Voice recording started...");
+      };
+  
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        console.log("Voice Input:", transcript);
+  
+        // Put transcript into input box
+        setInputMessage(transcript);
+      };
+  
+      recognition.onerror = (event) => {
+        console.error("Speech Recognition Error:", event.error);
+      };
+  
+      recognition.onend = () => {
+        setIsRecording(false);
+        console.log("Voice recording ended.");
+      };
+  
+      recognition.start();
+    } catch (err) {
+      console.error("Voice Recognition Error:", err);
     }
   };
+  
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
@@ -114,7 +164,7 @@ Be conversational, empathetic, and helpful. Ask one question at a time. Use both
               <Stethoscope size={24} />
             </div>
             <div>
-              <h1 className="logo-title">MediCare Plus</h1>
+              <h1 className="logo-title">HealthCare Plus Clinic</h1>
               <p className="logo-subtitle">Your Health, Our Priority</p>
             </div>
           </div>
@@ -211,21 +261,21 @@ Be conversational, empathetic, and helpful. Ask one question at a time. Use both
                 <Phone size={24} />
               </div>
               <h3 className="contact-title">Phone</h3>
-              <p className="contact-text">(555) 123-4567</p>
+              <p className="contact-text">+1 (555) 123-4567</p>
             </div>
             <div className="contact-card">
               <div className="contact-icon">
                 <Mail size={24} />
               </div>
               <h3 className="contact-title">Email</h3>
-              <p className="contact-text">info@medicareplus.com</p>
+              <p className="contact-text">info@HealthCareplus.com</p>
             </div>
             <div className="contact-card">
               <div className="contact-icon">
                 <MapPin size={24} />
               </div>
               <h3 className="contact-title">Location</h3>
-              <p className="contact-text">123 Health Street, Medical District</p>
+              <p className="contact-text">123 Health Street, Medical District, America</p>
             </div>
           </div>
         </div>
@@ -234,7 +284,7 @@ Be conversational, empathetic, and helpful. Ask one question at a time. Use both
       {/* Footer */}
       <footer className="footer">
         <div className="footer-container">
-          <p>&copy; 2025 MediCare Plus. All rights reserved.</p>
+          <p>&copy; 2025 HealthCare Plus Clinic. All rights reserved.</p>
         </div>
       </footer>
 
@@ -255,7 +305,7 @@ Be conversational, empathetic, and helpful. Ask one question at a time. Use both
                 <Stethoscope size={20} />
               </div>
               <div>
-                <h3 className="chat-title">MediCare Assistant</h3>
+                <h3 className="chat-title">HealthCare Plus Clinic</h3>
                 <p className="chat-status">Online</p>
               </div>
             </div>
@@ -299,6 +349,13 @@ Be conversational, empathetic, and helpful. Ask one question at a time. Use both
                 className="chat-input"
                 disabled={isLoading}
               />
+              <button
+                type="button"
+                onClick={startVoiceRecognition}
+                className={`mic-btn ${isRecording ? "recording" : ""}`}
+              >
+                🎤
+              </button>
               <button
                 onClick={sendMessage}
                 disabled={isLoading || !inputMessage.trim()}
