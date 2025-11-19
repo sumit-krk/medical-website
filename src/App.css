@@ -580,3 +580,218 @@ body {
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
+
+/* Date Picker Styles */
+.date-picker {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.date-picker-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.date-option {
+  padding: 12px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.date-option:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+}
+
+.date-option.selected {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.date-day {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.date-main {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.date-picker-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.close-picker-btn {
+  padding: 8px 16px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.close-picker-btn:hover {
+  background: #4b5563;
+}
+
+/* Time Picker Styles */
+.time-picker {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.time-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.time-picker-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.time-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.time-option {
+  padding: 12px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.time-option:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+}
+
+.time-option.selected {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.time-picker-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Message Time Styling */
+.message-time {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .date-picker-grid,
+  .time-picker-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .date-picker,
+  .time-picker {
+    margin: 8px 12px;
+    padding: 12px;
+  }
+}
+
+/* Update these CSS selectors */
+.message.user .message-bubble {
+  background: #3b82f6;
+  color: white;
+}
+
+.message.bot .message-bubble {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.message.bot.is-confirmation .message-bubble {
+  background: #dcfce7;
+  border: 1px solid #22c55e;
+  color: #166534;
+}
+
+/* Disabled date styles */
+.date-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f9fafb;
+}
+
+.date-option.disabled:hover {
+  border-color: #e5e7eb;
+  background: #f9fafb;
+}
+
+.date-badge {
+  font-size: 10px;
+  background: #ef4444;
+  color: white;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.date-picker-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
